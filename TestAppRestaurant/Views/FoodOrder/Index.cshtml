@@ -1,0 +1,74 @@
+﻿@model IEnumerable<TestAppRestaurant.ViewModel.FoodOrderViewModel>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<p>
+    @Html.ActionLink("Create New Order", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.FoodName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Quantity)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Price)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ServiceCharge)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.VAT)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Total)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.OrderedDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsDelivered)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.FoodName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Quantity)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Price)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ServiceCharge)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.VAT)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Total)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.OrderedDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.IsDelivered)
+        </td>
+        <td>
+            @Html.ActionLink("Update", "Edit", new { id=item.FoodOrderID }) |
+            @*@Html.ActionLink("Details", "Details", new { id=item.FoodOrderID }) |*@
+            @Html.ActionLink("Delete", "Delete", new { id=item.FoodOrderID })
+        </td>
+    </tr>
+}
+
+</table>
+

@@ -1,0 +1,305 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Create Order</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+</head>
+<body>
+    @Html.Hidden("FoodOrderID")
+    <div class="form-group">
+        <label for="pwd">Food Name:</label>
+        <select name="FoodID" id="foodid" class="form-control">
+            @foreach (var item in ViewBag.listofFood)
+            {
+                <option value="@item.FoodName">
+                    @item.FoodName
+                </option>
+            }
+        </select>
+
+    </div>
+    <div class="form-group">
+        <label for="pwd">Price:</label>
+        <input type="number" placeholder="Price" id="price" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pwd">Quantity:</label>
+        <input type="number" placeholder="Quantity" id="quantity" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pwd">ServiceCharge:</label>
+        <input type="text" placeholder="" id="servicecharge" readonly class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pwd">VAT:</label>
+        <input type="number" placeholder="" id="vat" readonly class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pwd">Total:</label>
+        <input type="number" placeholder="" id="total" readonly class="form-control" /><br />
+    </div>
+    <div class="form-group" hidden>
+        <label for="pwd">Ordered Date:</label>
+        <input type="text" placeholder="" id="orderedDate" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pwd">IsDelivered:</label>
+        <input type="checkbox" placeholder="" id="isdelivered" class="form-control" checked />
+    </div>
+
+    <button type="button" id="createorder">Create Order</button>
+    <button type="button" id="update" class="btn btn-success" hidden>Update Order</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <td>Food Name</td>
+                <td>Quantity</td>
+                <td>Rate</td>
+                <td>Service Charge</td>
+                <td>VAT</td>
+                <td>Total</td>
+                <td>Ordered Date</td>
+                <td>Delivery Status</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody id="ShowBody"></tbody>
+    </table>
+    <script>
+        function getFoodOrderList() {
+            $.ajax({
+                //modelname/function
+                url: '/FoodOrder/getFoodOrderList',
+                type: 'get',
+                async: false,
+                success: function (datas) {
+                    var h = "";
+                    $.each(datas, function (i, item) {
+                        h += '<tr>';
+                        h += '<td>' + item.FoodName + '</td>';
+                        h += '<td>' + item.Quantity + '</td>';
+                        h += '<td>' + item.Price + '</td>';
+                        h += '<td>' + item.ServiceCharge + '</td>';
+                        h += '<td>' + item.VAT + '</td>';
+                        h += '<td>' + item.Total + '</td>';
+                        h += '<td>' + dateFormat(new Date(parseInt((item.OrderedDate).match(/\d+/)[0]))) + '</td>';
+                        h += '<td>' + item.IsDelivered + '</td>';
+                        h += '<td><button type="button" class="btn btn-primary tdEdit" data-id="' + item.FoodOrderID + '">Update</button>&nbsp;&nbsp;' +
+                            '<button type="button" class="btn btn-danger tdDelete" data-id="' + item.FoodOrderID + '">Delete</button></td>';
+                        h += '</tr>';
+                    });
+
+                    $("#ShowBody").html(h);
+                }
+            })
+        }
+
+        function dateFormat(d) {
+            console.log(d);
+            return ((d.getMonth() + 1) + "").padStart(2, "0")
+                + "/" + (d.getDate() + "").padStart(2, "0")
+                + "/" + d.getFullYear();
+        }
+
+        $("#createorder").click(function () {
+
+            var foodName = $("#foodid").val();
+            var quantity = $("#quantity").val();
+            var price = $("#price").val();
+            var serviceCharge = $("#servicecharge").val();
+            var vat = $("#vat").val();
+            var total = $("#total").val();
+            var status = $("#isdelivered").attr("checked") ? true : false;
+
+
+            if (foodName == null || foodName == "") {
+                alert("Please select a food");
+            }
+            else if (quantity == null || quantity == "") {
+                alert("Please enter the quantity");
+
+            }
+            else if (price == null || price == "") {
+                alert("Please enter the price");
+
+            }
+            else {
+                $.ajax({
+                    url: '/FoodOrder/Create',
+                    type: 'post',
+                    dataType: 'JSON',
+                    data: {
+                        FoodName: foodName, Quantity: quantity, Price: price, ServiceCharge: serviceCharge, VAT: vat,
+                        Total: total, IsDelivered: status
+                    },
+                    success: function (data) {
+                        getFoodOrderList();
+                        $("#foodid").val('');
+                        $("#quantity").val('');
+                        $("#price").val('');
+                        $("#servicecharge").val('');
+                        $("#vat").val('');
+                        $("#total").val('');
+                        $("#isdelivered").val('');
+                        alert("Order has been successfully inserted");
+                    },
+                    error: function () {
+                        alert("Server Error");
+                    }
+
+                });
+            }
+        });
+
+        $(function () {
+            //load user details
+            $('#createorder').show();
+            $('#update').hide();
+            //table show
+            getFoodOrderList();
+        })
+
+
+        $('#ShowBody').on('click', '.tdDelete', function () {
+            var id = $(this).data('id');
+            if (confirm('Are your sure?')) {
+                $.ajax({
+                    url: '/FoodOrder/Delete?id=' + id,
+                    type: 'post',
+                    async: false,
+                    success: function (data) {
+                        alert('Record Deleted');
+                        getFoodOrderList();
+                    },
+                    error: function () {
+                        alert('Error while deleting the record');
+                    }
+                });
+            }
+
+        });
+
+
+        $('#ShowBody').on('click', '.tdEdit', function () {
+            var id = $(this).data('id');
+            $.ajax({
+                url: '/FoodOrder/Details?id=' + id,
+                type: 'get',
+                async: false,
+                success: function (data) {
+                    $("#FoodOrderID").val(data.FoodOrderID);
+                    $("#foodid").val(data.FoodName);
+                    $("#quantity").val(data.Quantity);
+                    $("#price").val(data.Price);
+                    $("#servicecharge").val(data.ServiceCharge);
+                    $("#vat").val(data.VAT);
+                    $("#total").val(data.Total);
+                    $("#isdelivered").val(data.IsDelivered);
+                    $("#orderedDate").val(dateFormat(new Date(parseInt((data.OrderedDate).match(/\d+/)[0]))));
+                    $('#update').show();
+                    $('#createorder').hide();
+                },
+                error: function () {
+                    alert('Error while loading the data');
+                }
+            })
+        });
+
+
+
+
+        $("#update").click(function () {
+            var foodOrderID = $("#FoodOrderID").val();
+            var foodName = $("#foodid").val();
+            var quantity = $("#quantity").val();
+            var price = $("#price").val();
+            var serviceCharge = $("#servicecharge").val();
+            var vat = $("#vat").val();
+            var total = $("#total").val();
+            var orderedDate = $("#orderedDate").val();           
+            var status = $("#isdelivered").attr("checked") ? true : false;
+
+
+            if (foodName == null || foodName == "") {
+                alert("please select a food");
+            }
+            else if (quantity == null || quantity == "") {
+                alert("please enter the quantity");
+
+            }
+            else if (price == null || price == "") {
+                alert("Please enter the price");
+
+            }
+            else {
+                $.ajax({
+                    url: '/FoodOrder/Edit',
+                    type: 'post',
+                    dataType: 'JSON',
+                    data: {
+                        FoodOrderID: foodOrderID, FoodName: foodName, Quantity: quantity, Price: price, ServiceCharge: serviceCharge, VAT: vat,
+                        Total: total, IsDelivered: status, OrderedDate: orderedDate
+                    },
+                    success: function (data) {
+                        getFoodOrderList();
+
+                        if (data === 1 || data === '1') {
+                            alert("Data has been successfully updated");
+                            $("#FoodOrderID").val('');
+                            $("#foodid").val('');
+                            $("#quantity").val('');
+                            $("#price").val('');
+                            $("#servicecharge").val('');
+                            $("#vat").val('');
+                            $("#total").val('');
+                            $("#orderedDate").val('');
+                            $("#isdelivered").val('');
+                        }
+                        else {
+                            alert("Could not Update");
+                        }
+                    }, error: function () {
+                        alert("Server Error");
+                    }
+
+                });
+            }
+        });
+
+
+        $('#quantity').on('change', function () {
+            var quantity = $('#quantity').val();
+            var initialPrice = (Number($('#price').val())) * quantity;
+            var serviceCharge = (.1 * initialPrice);
+            $('#servicecharge').val(serviceCharge);
+            var vatCharge = ((serviceCharge + initialPrice) * .13);
+            $('#vat').val(vatCharge);
+            var total = initialPrice + serviceCharge + vatCharge;
+            $('#total').val(total);
+
+        });
+        $('#price').on('change', function () {
+            var quantity = $('#quantity').val();
+            var initialPrice = (Number($('#price').val())) * quantity;
+            var serviceCharge = (.1 * initialPrice);
+            $('#servicecharge').val(serviceCharge);
+            var vatCharge = ((serviceCharge + initialPrice) * .13);
+            $('#vat').val(vatCharge);
+            var total = initialPrice + serviceCharge + vatCharge;
+            $('#total').val(total);
+
+        });
+
+    </script>
+
+
+</body>
+</html>
